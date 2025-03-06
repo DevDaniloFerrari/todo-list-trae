@@ -12,9 +12,10 @@ import {
   IonIcon,
   IonItemSliding,
   IonItemOption,
-  IonItemOptions
+  IonItemOptions,
+  IonAlert
 } from '@ionic/react';
-import { checkmark, trash } from 'ionicons/icons';
+import { checkmark, trash, reloadOutline } from 'ionicons/icons';
 import './Home.css';
 import { useState } from 'react';
 
@@ -27,6 +28,8 @@ interface Task {
 const Home: React.FC = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTask, setNewTask] = useState('');
+  const [loadingTaskId, setLoadingTaskId] = useState<number | null>(null);
+  const [taskToComplete, setTaskToComplete] = useState<number | null>(null);
 
   const addTask = () => {
     if (newTask.trim()) {
@@ -35,10 +38,18 @@ const Home: React.FC = () => {
     }
   };
 
+  const handleTaskCompletion = (id: number) => {
+    setTaskToComplete(id);
+  };
+
   const toggleTask = (id: number) => {
-    setTasks(tasks.map(task =>
-      task.id === id ? { ...task, completed: !task.completed } : task
-    ));
+    setLoadingTaskId(id);
+    setTimeout(() => {
+      setTasks(tasks.map(task =>
+        task.id === id ? { ...task, completed: !task.completed } : task
+      ));
+      setLoadingTaskId(null);
+    }, 2000);
   };
 
   const deleteTask = (id: number) => {
@@ -47,6 +58,28 @@ const Home: React.FC = () => {
 
   return (
     <IonPage>
+      <IonAlert
+        isOpen={taskToComplete !== null}
+        onDidDismiss={() => setTaskToComplete(null)}
+        header="Confirm Action"
+        message="Are you sure you want to mark this task as complete?"
+        buttons={[
+          {
+            text: 'Cancel',
+            role: 'cancel',
+            handler: () => setTaskToComplete(null)
+          },
+          {
+            text: 'Complete',
+            handler: () => {
+              if (taskToComplete !== null) {
+                toggleTask(taskToComplete);
+                setTaskToComplete(null);
+              }
+            }
+          }
+        ]}
+      />
       <IonHeader>
         <IonToolbar>
           <IonTitle>To-Do List</IonTitle>
@@ -75,9 +108,10 @@ const Home: React.FC = () => {
                   <IonButton
                     slot="end"
                     fill="clear"
-                    onClick={() => toggleTask(task.id)}
+                    onClick={() => handleTaskCompletion(task.id)}
+                    disabled={loadingTaskId === task.id}
                   >
-                    <IonIcon icon={checkmark} />
+                    <IonIcon icon={loadingTaskId === task.id ? reloadOutline : checkmark} className={loadingTaskId === task.id ? 'spin-animation' : ''} />
                   </IonButton>
                 </IonItem>
                 <IonItemOptions side="end">
