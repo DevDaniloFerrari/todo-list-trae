@@ -1,0 +1,8 @@
+.completed-task {
+  text-decoration: line-through;
+  color: #999;
+}
+
+.add-task-container {
+  margin-bottom: 20px;
+}
